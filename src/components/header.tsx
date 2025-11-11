@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ShoppingCart, User, LogOut, Settings, Package, Heart, MessageSquare, Trophy } from "lucide-react"
+import { ShoppingCart, User, LogOut, Settings, Package, Heart, MessageSquare, Trophy, Github } from "lucide-react"
 
 export function Header() {
   const { data: session, status } = useSession()
@@ -180,6 +180,12 @@ export function Header() {
                 </Button>
               </div>
             )}
+
+            {/* Github Link */}
+            <a href="https://github.com/iamajraj/freshmart" target="_blank" rel="noopener noreferrer">
+              <Github className="h-5 w-5" />
+              <span className="sr-only">Shopping cart</span>
+            </a>
           </div>
         </div>
       </div>

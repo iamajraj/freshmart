@@ -36,29 +36,29 @@ export function Footer() {
               </li>
             </ul>
           </div>
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/contact" className="hover:text-white">
-                    Contact Us
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/support" className="hover:text-white">
-                    Support Tickets
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/faq" className="hover:text-white">
-                    FAQ
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/delivery" className="hover:text-white">
-                    Delivery Info
-                  </Link>
-                </li>
+          <div>
+            <h4 className="font-semibold mb-4">Support</h4>
+            <ul className="space-y-2 text-gray-400">
+              <li>
+                <Link href="/contact" className="hover:text-white">
+                  Contact Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/support" className="hover:text-white">
+                  Support Tickets
+                </Link>
+              </li>
+              <li>
+                <Link href="/faq" className="hover:text-white">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link href="/delivery" className="hover:text-white">
+                  Delivery Info
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
@@ -78,7 +78,17 @@ export function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2025 FreshMart. All rights reserved.</p>
+          <p>
+            &copy; 2025 FreshMart. All rights reserved. |{' '}
+            <a
+              href="https://github.com/iamajraj"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-white transition-colors"
+            >
+             @Muhammad Raj
+            </a>
+          </p>
         </div>
       </div>
     </footer>
