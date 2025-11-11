@@ -184,7 +184,6 @@ export function Header() {
             {/* Github Link */}
             <a href="https://github.com/iamajraj/freshmart" target="_blank" rel="noopener noreferrer">
               <Github className="h-5 w-5" />
-              <span className="sr-only">Shopping cart</span>
             </a>
           </div>
         </div>
