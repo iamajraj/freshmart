@@ -10,7 +10,7 @@ _A complete e-commerce solution with advanced loyalty programs, analytics, and c
 
 </div>
 
-> **For viewing all features with detailed screenshots, visit the [Showcase Page](http://localhost:3000/showcase)**
+> **For viewing all features with detailed screenshots, visit the [Showcase Page](https://freshmart.hexraj.com/showcase)**
 
 ---
 
