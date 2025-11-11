@@ -420,7 +420,7 @@ export default function ShowcasePage() {
                         key={feature.id}
                         onClick={() => setActiveFeature(feature)}
                         className={cn(
-                          'w-full text-left p-4 rounded-lg transition-colors hover:bg-gray-50',
+                          'cursor-pointer w-full text-left p-4 rounded-lg transition-colors hover:bg-gray-50',
                           activeFeature.id === feature.id
                             ? 'bg-blue-50 border-l-4 border-blue-500'
                             : 'border-l-4 border-transparent'
