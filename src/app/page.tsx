@@ -59,8 +59,8 @@ export default async function Home() {
               </Button>
 
               <Button size="lg" variant="outline" asChild className="border-green-600 text-green-600 hover:bg-green-50 px-8 py-3">
-                <Link href="/auth/signup">
-                  Sign Up Free
+                <Link href="/showcase">
+                  Showcase
                 </Link>
               </Button>
             </div>
