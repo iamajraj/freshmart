@@ -1,0 +1,405 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  name           String?
+  password       String?
+  role           Role          @default(CUSTOMER)
+  image          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Loyalty system
+  loyaltyPoints  Int           @default(0)
+  loyaltyTier    LoyaltyTier   @default(BRONZE)
+  totalSpent     Float         @default(0)
+  referralCode   String        @unique @default(cuid())
+  referredById   String?
+
+
+  carts           Cart[]
+  orders          Order[]
+  reviews         Review[]
+  wishlists       Wishlist[]
+  supportTickets  SupportTicket[]
+  supportMessages SupportMessage[]
+  pointsTransactions PointsTransaction[]
+  redeemedRewards    RedeemedReward[]
+  couponUsages       CouponUsage[]
+  referredBy      User?        @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals       User[]       @relation("UserReferrals")
+
+  @@map("users")
+}
+
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  stock       Int       @default(0)
+  unit        String    @default("piece") // piece, kg, liter, etc.
+  isActive    Boolean   @default(true)
+  categoryId  String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  category   Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  cartItems  Cart[]
+  orderItems OrderItem[]
+  reviews    Review[]
+  wishlists  Wishlist[]
+
+  @@map("products")
+}
+
+model Cart {
+  id        String  @id @default(cuid())
+  userId    String
+  productId String
+  quantity  Int     @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("carts")
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  userId        String
+  status        OrderStatus @default(PENDING)
+  totalAmount   Float
+  shippingAddress String?
+  paymentIntentId String?   @unique
+  discountAmount Float      @default(0)  // Total discount from rewards
+  rewardsApplied String?    // JSON string of applied rewards details
+  campaignsApplied String?  // JSON string of applied campaigns details
+  couponsApplied String?    // JSON string of applied coupons details
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderItems   OrderItem[]
+  couponUsages CouponUsage[]
+
+  @@map("orders")
+}
+
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float   // Price at time of order
+  createdAt DateTime @default(now())
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  rating    Int      // 1-5 stars
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("reviews")
+}
+
+model SupportTicket {
+  id          String             @id @default(cuid())
+  userId      String
+  subject     String
+  status      SupportTicketStatus @default(OPEN)
+  priority    SupportPriority     @default(MEDIUM)
+  category    SupportCategory
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages SupportMessage[]
+
+  @@map("support_tickets")
+}
+
+model SupportMessage {
+  id         String   @id @default(cuid())
+  ticketId   String
+  userId     String?  // null for admin messages
+  message    String
+  isFromAdmin Boolean @default(false)
+  createdAt  DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("support_messages")
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("wishlists")
+}
+
+model Reward {
+  id          String     @id @default(cuid())
+  name        String
+  description String
+  pointsCost  Int
+  value       Float      // monetary value for discounts
+  type        RewardType
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  redeemedRewards RedeemedReward[]
+
+  @@map("rewards")
+}
+
+model RedeemedReward {
+  id        String   @id @default(cuid())
+  userId    String
+  rewardId  String
+  redeemedAt DateTime @default(now())
+  usedAt    DateTime?
+  status    RedemptionStatus @default(PENDING)
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@map("redeemed_rewards")
+}
+
+model PointsTransaction {
+  id          String            @id @default(cuid())
+  userId      String
+  amount      Int               // positive for earned, negative for spent
+  type        TransactionType
+  description String
+  referenceId String?           // order ID, reward ID, etc.
+  createdAt   DateTime          @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("points_transactions")
+}
+
+model Promotion {
+  id          String      @id @default(cuid())
+  name        String
+  description String
+  type        PromotionType
+  multiplier  Float       @default(1.0) // points multiplier
+  bonusPoints Int         @default(0)
+  isActive    Boolean     @default(true)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("promotions")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum LoyaltyTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum RewardType {
+  DISCOUNT
+  FREE_DELIVERY
+  FREE_PRODUCT
+  CASHBACK
+}
+
+enum RedemptionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  USED
+}
+
+enum TransactionType {
+  PURCHASE
+  REDEMPTION
+  REFERRAL_BONUS
+  PROMOTION_BONUS
+  REWARD_CREDIT
+  COUPON_DISCOUNT
+  EXPIRATION
+  ADMIN_ADJUSTMENT
+}
+
+enum PromotionType {
+  FIRST_PURCHASE
+  BIRTHDAY_BONUS
+  SEASONAL_BONUS
+  SPENDING_MILESTONE
+  REFERRAL_PROGRAM
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_USER
+  RESOLVED
+  CLOSED
+}
+
+enum SupportPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SupportCategory {
+  ORDER_ISSUE
+  PRODUCT_QUESTION
+  DELIVERY_PROBLEM
+  PAYMENT_ISSUE
+  ACCOUNT_PROBLEM
+  TECHNICAL_ISSUE
+  OTHER
+}
+
+model Banner {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String?
+  linkUrl     String?
+  isActive    Boolean  @default(true)
+  priority    Int      @default(0) // Higher priority shows first
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("banners")
+}
+
+model Campaign {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  type        String   // "DISCOUNT", "BOGO", "FREE_SHIPPING", "POINTS_MULTIPLIER"
+  discountType String? // "PERCENTAGE", "FIXED"
+  discountValue Float?
+  minPurchase Float?
+  pointsMultiplier Int  @default(1)
+  isActive    Boolean  @default(true)
+  startDate   DateTime?
+  endDate     DateTime?
+  usageLimit  Int?     // Total usage limit
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("campaigns")
+}
+
+model Coupon {
+  id              String       @id @default(cuid())
+  code            String       @unique
+  description     String
+  discountType    String       // "PERCENTAGE", "FIXED", "FREE_SHIPPING"
+  discountValue   Float?
+  minPurchase     Float?
+  maxDiscount     Float?       // Maximum discount amount for percentage coupons
+  isActive        Boolean      @default(true)
+  startDate       DateTime?
+  endDate         DateTime?
+  usageLimit      Int?         // Per coupon usage limit
+  usageLimitPerUser Int?       // Per user usage limit
+  usageCount      Int          @default(0)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  couponUsages    CouponUsage[]
+
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id         String   @id @default(cuid())
+  couponId   String
+  userId     String
+  orderId    String?
+  discountAmount Float
+  usedAt     DateTime @default(now())
+
+  coupon     Coupon   @relation(fields: [couponId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  order      Order?   @relation(fields: [orderId], references: [id])
+
+  @@unique([couponId, userId, orderId])
+  @@map("coupon_usages")
+}

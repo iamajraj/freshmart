@@ -1,0 +1,3 @@
+export const APP_CONFIG = {
+  PASSWORD_HASH_ROUNDS: 12,
+}
