@@ -19,6 +19,8 @@ import {
   Package,
 } from "lucide-react"
 import { toast } from "sonner"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 
 interface LoyaltyData {
   points: number
@@ -87,15 +89,24 @@ const tierConfig = {
 }
 
 export default function LoyaltyPage() {
+  const { data: session, status, update } = useSession()
+  const router = useRouter()
   const [loyaltyData, setLoyaltyData] = useState<LoyaltyData | null>(null)
   const [rewards, setRewards] = useState<Reward[]>([])
   const [loading, setLoading] = useState(true)
   const [redeeming, setRedeeming] = useState<string | null>(null)
 
   useEffect(() => {
+    if (status === "loading") return
+
+    if (!session) {
+      router.push("/auth/signin")
+      return
+    }
+
     fetchLoyaltyData()
     fetchRewards()
-  }, [])
+  }, [session, status, router])
 
   const fetchLoyaltyData = async () => {
     try {

@@ -45,7 +45,7 @@ interface Product {
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { addRecentlyViewed } = useRecentlyViewed();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -102,7 +102,10 @@ export default function ProductDetailPage() {
 
   const addToCart = async () => {
     if (!product) return;
-
+    if (status !== 'authenticated') {
+      toast.info('Please login to add to cart');
+      return;
+    }
     try {
       const response = await fetch('/api/cart', {
         method: 'POST',

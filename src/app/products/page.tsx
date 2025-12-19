@@ -27,6 +27,7 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 
 interface Product {
   id: string;
@@ -73,6 +74,7 @@ interface Filters {
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
+  const {status} = useSession();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(
@@ -202,6 +204,10 @@ export default function ProductsPage() {
   };
 
   const addToCart = async (productId: string) => {
+    if (status !== 'authenticated') {
+      toast.info('Please login to add to cart');
+      return;
+    }
     try {
       const response = await fetch('/api/cart', {
         method: 'POST',

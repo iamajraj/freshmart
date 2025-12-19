@@ -17,12 +17,15 @@ import { ShoppingCart, User, LogOut, Settings, Package, Heart, MessageSquare, Tr
 export function Header() {
   const { data: session, status } = useSession()
   const [wishlistCount, setWishlistCount] = useState(0)
+  const [cartCount, setCartCount] = useState(0)
 
   useEffect(() => {
     if (session) {
       fetchWishlistCount()
+      fetchCartCount()
     } else {
       setWishlistCount(0)
+      setCartCount(0)
     }
   }, [session])
 
@@ -35,6 +38,18 @@ export function Header() {
       }
     } catch (error) {
       console.error('Failed to fetch wishlist count:', error)
+    }
+  }
+
+  const fetchCartCount = async () => {
+    try {
+      const response = await fetch("/api/cart")
+      if (response.ok) {
+        const cart = await response.json()
+        setCartCount(cart.items.length);
+      } 
+    } catch (error) {
+      console.error("Failed to fetch cart count:", error)
     }
   }
 
@@ -55,9 +70,11 @@ export function Header() {
             <Link href="/categories" className="text-gray-600 hover:text-gray-900">
               Categories
             </Link>
-            <Link href="/loyalty" className="text-gray-600 hover:text-gray-900">
-              Loyalty
-            </Link>
+            {session && 
+              <Link href="/loyalty" className="text-gray-600 hover:text-gray-900">
+                Loyalty
+              </Link>
+            }
             <Link href="/contact" className="text-gray-600 hover:text-gray-900">
               Contact
             </Link>
@@ -89,16 +106,22 @@ export function Header() {
             )}
 
             {/* Cart */}
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="relative">
               <Link href="/cart">
                 <ShoppingCart className="h-5 w-5" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartCount > 9 ? '9+' : cartCount}
+                    </span>
+                  )}
                 <span className="sr-only">Shopping cart</span>
               </Link>
             </Button>
 
             {/* User menu */}
             {status === "loading" ? (
-              <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse" />
+              <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse">
+              </div>
             ) : session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
